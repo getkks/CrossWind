@@ -44,7 +44,7 @@ class Build : NukeBuild
 
 	[Required] [GitRepository] readonly GitRepository GitRepository;
 	[Required] [Solution] readonly Solution Solution;
-	[Required] [GitVersion(Framework = "netcoreapp3.1", NoFetch = true)] readonly GitVersion GitVersion;
+	[Required] [GitVersion] readonly GitVersion GitVersion;
 	[Parameter] readonly string GitHubToken;
 
 	AbsolutePath SourceDirectory => RootDirectory / "Source";
