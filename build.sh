@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 echo $(bash --version 2>&1 | head -n 1)
 
 set -eo pipefail
