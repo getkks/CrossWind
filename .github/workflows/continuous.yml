@@ -10,7 +10,7 @@ jobs:
             image: mcr.microsoft.com/dotnet/sdk:5.0
         steps:
             - uses: actions/checkout@v1
-            - name: Run './build.cmd'
-              run: ./build.cmd
+            - name: Run './build.sh'
+              run: ./build.sh
               env:
                   GitHubToken: ${{ secrets.GITHUB_TOKEN }}

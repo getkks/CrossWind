@@ -1,6 +1,5 @@
 [core]
 autocrlf = false
-safecrlf = true
 # Auto detect text files
 * text=utf8 eol=lf
 # Custom for Visual Studio
