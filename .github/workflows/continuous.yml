@@ -7,7 +7,7 @@ jobs:
         name: ubuntu-latest
         runs-on: ubuntu-latest
         container:
-            image: mcr.microsoft.com/dotnet/sdk:5.0-nanoserver-2004
+            image: mcr.microsoft.com/dotnet/sdk:5.0
         steps:
             - uses: actions/checkout@v1
             - name: Run './build.cmd'
