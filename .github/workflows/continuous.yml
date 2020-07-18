@@ -6,6 +6,8 @@ jobs:
     windows-latest:
         name: windows-latest
         runs-on: windows-latest
+        container:
+            image: mcr.microsoft.com/dotnet/sdk:5.0-nanoserver-2004
         steps:
             - uses: actions/checkout@v1
             - name: Run './build.cmd'
