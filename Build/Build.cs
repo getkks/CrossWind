@@ -30,7 +30,7 @@ using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 [UnsetVisualStudioEnvironmentVariables]
 [GitHubActions(
 	"continuous",
-	GitHubActionsImage.WindowsLatest,
+	GitHubActionsImage.UbuntuLatest,
 	On = new[] { GitHubActionsTrigger.Push },
 	InvokedTargets = new[] { nameof(Compile) },
 	ImportGitHubTokenAs = nameof(GitHubToken))]
