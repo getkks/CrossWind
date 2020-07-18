@@ -1,0 +1,21 @@
+image: mcr.microsoft.com/dotnet/sdk:5.0
+
+stages:
+    - build
+    - test
+
+before_script:
+    - './build.sh Restore' #'dotnet restore'
+
+build:
+    stage: build
+    script:
+        - './build.sh build' #'dotnet build'
+    artifacts:
+        paths:
+            - Source/*/bin/
+
+test:
+    stage: test
+    script:
+        - 'dotnet test'
