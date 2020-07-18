@@ -1,0 +1,17 @@
+name: continuous
+
+on: [push]
+
+jobs:
+    ubuntu-latest:
+        name: ubuntu-latest
+        runs-on: ubuntu-latest
+        container:
+            image: mcr.microsoft.com/dotnet/sdk:5.0
+        steps:
+            - uses: actions/checkout@v1
+            - name: Run './build.sh'
+              run: ./build.sh
+              env:
+                  GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+            - uses: actions/upload-artifact@v1
