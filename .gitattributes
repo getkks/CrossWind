@@ -1,3 +1,5 @@
+# Set default behavior to automatically normalize line endings.
+* text=auto
 [core]
 autocrlf = false
 # Auto detect text files
@@ -26,3 +28,8 @@ autocrlf = false
 *.PDF diff=astextplain
 *.rtf diff=astextplain
 *.RTF diff=astextplain
+
+# image files are treated as binary by default.
+*.jpg   binary
+*.png   binary
+*.gif   binary
