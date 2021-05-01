@@ -34,7 +34,7 @@ File Created	: Saturday, 20th February 2021 2:03:41 pm
 
 Author			: Karthik K Selvan (getkks@live.in)
 
-Last Modified	: Saturday, 1st May 2021 12:54:42 pm
+Last Modified	: Saturday, 1st May 2021 1:34:39 pm
 Modified By		: Karthik K Selvan (getkks@live.in>)
 
 Change History:
@@ -68,7 +68,7 @@ using static Nuke.Common.IO.PathConstruction;
 [CheckBuildProjectConfigurations]
 [ShutdownDotNetAfterServerBuild]
 [GitHubActions(
-	"continuous",
+	"BuildCI",
 	GitHubActionsImage.WindowsLatest,
 	GitHubActionsImage.UbuntuLatest,
 	GitHubActionsImage.MacOsLatest,
