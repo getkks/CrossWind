@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net5.0</TargetFramework>
+		<RootNamespace />
+		<NoWarn>CS0649;CS0169</NoWarn>
+		<NukeRootDirectory>..</NukeRootDirectory>
+		<NukeScriptDirectory>..</NukeScriptDirectory>
+		<OldToolsVersion>2.0</OldToolsVersion>
+		<Platforms>AnyCPU;x64;x86</Platforms>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Nuke.Common" Version="*" />
+		<PackageDownload Include="GitVersion.Tool" Version="[5.6.8]" />
+		<PackageReference Include="OpenCover" Version="*" />
+		<PackageDownload Include="ReportGenerator" Version="[4.8.7]" />
+		<PackageReference Include="Nuke.WebDocu" Version="*" />
+		<PackageReference Include="Nuke.GitHub" Version="*" />
+		<PackageReference Include="docfx.console" Version="*">
+			<ExcludeAssets>build</ExcludeAssets>
+		  </PackageReference>
+	</ItemGroup>
+
+</Project>
