@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<GenerateProgramFile>false</GenerateProgramFile>
+		<OtherFlags>$(OtherFlags)--warnon:3390 --consolecolors</OtherFlags>
+		<LangVersion>preview</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Include="Tests.fs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="FSharp.Core" Version="*" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
+		<PackageReference Include="MSTest.TestAdapter" Version="*" />
+		<PackageReference Include="MSTest.TestFramework" Version="*" />
+		<PackageReference Include="coverlet.collector" Version="*" />
+		<PackageReference Include="coverlet.msbuild" Version="*">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="Fixie" Version="*" />
+		<PackageReference Include="Shouldly" Version="*" />
+		<DotNetCliToolReference Include="Fixie.Console" Version="*" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Source\CrossWind\CrossWind.fsproj" />
+	</ItemGroup>
+
+</Project>
