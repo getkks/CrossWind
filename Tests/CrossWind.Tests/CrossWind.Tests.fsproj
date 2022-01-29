@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<GenerateProgramFile>false</GenerateProgramFile>
+		<OtherFlags>$(OtherFlags)--warnon:3390</OtherFlags>
+		<LangVersion>preview</LangVersion>
+		<Platforms>AnyCPU;x64;x86</Platforms>
+	</PropertyGroup>
+	<ItemGroup>
+	  <Compile Include="Utils.fs" />
+	  <Compile Include="TestingTypes.fs" />
+	  <Compile Include="TestSetup.fs" />
+		<Compile Include="TestBase.fs" />
+		<Compile Include="TestBase.Generic.fs" />
+		<Compile Include="IEnumerable.Generic.Tests.fs" />
+		<Compile Include="ICollection.Generic.Tests.fs" />
+		<Compile Include="IList.Generic.Tests.fs" />
+		<Compile Include="List.Generic.Tests.fs" />
+		<Compile Include="List.Generic.fs" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Fixie" Version="*" />
+		<PackageReference Include="Fixie.TestAdapter" Version="*" />
+		<PackageReference Include="FSharp.Core" Version="*" />
+		<PackageReference Include="coverlet.collector" Version="*" />
+		<PackageReference Include="coverlet.msbuild" Version="*">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="Shouldly" Version="*" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Source\CrossWind\CrossWind.fsproj" />
+	</ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DebugType>portable</DebugType>
+		<DefineConstants>DEBUG</DefineConstants>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<DebugType></DebugType>
+	</PropertyGroup>
+</Project>
