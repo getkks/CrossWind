@@ -33,7 +33,7 @@ type TestBase () =
 
     interface IDisposable with
         member _.Dispose () =
-            for x in disposables.AsSpan do
+            for x in disposables.AsSpan() do
                 x.Dispose()
 
             disposables.Dispose()

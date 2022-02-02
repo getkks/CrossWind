@@ -1,17 +1,9 @@
 namespace CrossWind.Collections.Tests
 
-open Shouldly
-open System
-open System.Collections.Generic
-open System.Diagnostics
-open System.Linq
-open System.Runtime.InteropServices
 open CrossWind.Collections
-open CrossWind.Runtime
-open CrossWind.Tests
 
 [<AbstractClass>]
-type ``List Generic Tests``<'T> () =
+type ``List Generic Tests``<'T when 'T : equality> () =
     inherit ``IList Generic Tests``<'T> ()
 
     abstract GenericListFactory : unit -> 'T PooledList.PooledList

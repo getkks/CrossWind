@@ -2,12 +2,8 @@ namespace CrossWind.Collections.Tests
 
 open System
 open System.Collections.Generic
-open System.Reflection
-open Fixie
-open Shouldly
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
-open System.Runtime.CompilerServices
 
 [<Extension>]
 type Extensions =

@@ -3,15 +3,12 @@ namespace CrossWind.Collections.Tests
 open Shouldly
 open System
 open System.Collections.Generic
-open System.Diagnostics
 open System.Linq
-open System.Runtime.InteropServices
-open CrossWind.Collections
 open CrossWind.Runtime
 open CrossWind.Tests
 
 [<AbstractClass>]
-type ``ICollection Generic Tests``<'T> () =
+type ``ICollection<'T> Tests``<'T when 'T : equality> () =
     inherit ``IEnumerable<'T> Tests``<'T> ()
     abstract ``Add Remove and Clear throws NotSupported`` : bool
     default _.``Add Remove and Clear throws NotSupported`` = false
@@ -109,7 +106,7 @@ type ``ICollection Generic Tests``<'T> () =
         }
 
     [<Test ; MemberData(nameof (TestBase.ValidCollectionSizes))>]
-    member x.``ICollection<'T> calling Add method after Clear method`` count =
+    member x.``ICollection<'T> Add after Clear() succeeds`` count =
         if
             not
                 (
@@ -121,3 +118,24 @@ type ``ICollection Generic Tests``<'T> () =
             collection.Clear()
             x.AddToCollection(collection, 5)
             collection.Count.ShouldBe(5)
+
+    [<Test ; MemberData(nameof (TestBase.ValidCollectionSizes))>]
+    member x.``ICollection<'T> Add after Remove() succeeds`` count =
+        if
+            not
+                (
+                    x.IsReadOnly
+                    || x.``Add Remove and Clear throws NotSupported``
+                )
+        then
+            let mutable seed = 840
+            let collection = count |> x.GenericICollectionFactory
+            let mutable toAdd = x.CreateT(seed)
+
+            while collection.Contains(toAdd) do
+                seed <- seed + 1
+                toAdd <- x.CreateT(seed)
+
+            collection.Add toAdd
+            toAdd |> collection.Remove |> ignore
+            collection.Add toAdd

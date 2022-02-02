@@ -300,7 +300,7 @@ module rec PooledHash =
         val mutable comparer : 'KeyComparer
 
         new (capacity, keyComparer) =
-            let pool = PrimeSizedArrayPool.Shared
+            let pool = PrimeSizedArrayPool()
 
             let bucketIndex =
                 capacity
@@ -314,17 +314,27 @@ module rec PooledHash =
               entries = bucketIndex |> pool.RentFromBucket
               comparer = keyComparer |> ApplyComparer }
 
-        member x.Dispose () =
-            x.hashBuckets.Dispose()
-            x.entryPool.Return(x.entries)
-            x.entries <- null
-
-        member x.FindEntry key = x |> FindEntryIndex key
+        new (capacity) =
+            new PooledHash<'T, 'TKey, 'TValue, 'TAccess, 'KeyComparer>(
+                capacity,
+                if
+                    typeof<'KeyComparer>.Equals (typeof<EqualityComparer<'TKey>>)
+                    && RuntimeHelpers.IsReferenceOrContainsReferences<'TKey>()
+                then
+                    EqualityComparer<'TKey>.Default |> unbox
+                else
+                    Unchecked.defaultof<_>
+            )
 
         member x.Add (key, value) =
             x
             |> TryInsert key value ThrowOnExisting
             |> ignore
+
+        member x.ContainsKey key = (x |> FindEntryIndex key) <> -1
+        member x.Count = x.count
+
+        member x.FindEntry key = x |> FindEntryIndex key
 
         member x.Item
             with get key =
@@ -337,12 +347,27 @@ module rec PooledHash =
                                    |> ThrowHelpers.GetKeyNotFoundException
                                    |> raise
                                )]
+                    .Entry
+                |> (Unchecked.defaultof<'TAccess>).GetValue
             and set key value =
                 x
                 |> TryInsert key value OverwriteExisting
                 |> ignore
 
+        member x.Keys =
+            (seq {
+                for entry in x.entries do
+                    yield
+                        entry.Entry
+                        |> (Unchecked.defaultof<'TAccess>).GetKey
+             })
+
         member x.Remove key = x |> Remove key
+
+        member x.Dispose () =
+            x.hashBuckets.Dispose()
+            x.entryPool.Return(x.entries)
+            x.entries <- null
 
         interface IDisposable with
             [<MethodImpl(MethodImplOptions.AggressiveInlining)>]

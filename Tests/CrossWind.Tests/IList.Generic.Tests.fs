@@ -1,18 +1,11 @@
 namespace CrossWind.Collections.Tests
 
 open Shouldly
-open System
 open System.Collections.Generic
-open System.Diagnostics
-open System.Linq
-open System.Runtime.InteropServices
-open CrossWind.Collections
-open CrossWind.Runtime
-open CrossWind.Tests
 
 [<AbstractClass>]
-type ``IList Generic Tests``<'T> () =
-    inherit ``ICollection Generic Tests``<'T> ()
+type ``IList Generic Tests``<'T when 'T : equality> () =
+    inherit ``ICollection<'T> Tests``<'T> ()
 
     override _.``Default Value when not allowed throws`` = false
 

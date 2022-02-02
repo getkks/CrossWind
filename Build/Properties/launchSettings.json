@@ -2,7 +2,7 @@
   "profiles": {
     "Build": {
       "commandName": "Project",
-      "commandLineArgs": "Compile"
+      "commandLineArgs": "ReportCoverage"
     }
   }
 }

@@ -6,12 +6,9 @@ open System.Diagnostics
 open System.Buffers
 open System.Runtime.CompilerServices
 open CrossWind.Runtime
+open System
 
 module PooledList =
-
-    let inline packedIndexCount (index : int) (count : uint) = uint64 index <<< 32 ||| uint64 count
-    let inline index (packed : uint64) = int32 packed >>> 32
-    let inline count (packed : uint64) = uint32 packed
     /// <summary>
     /// List implementation using <see cref="ArrayPool{T}"/> for storing elements. This implementation is based on <see cref="List{T}"/> and <see href="https://github.com/jtmueller/Collections.Pooled"/>.
     /// </summary>
@@ -98,7 +95,7 @@ module PooledList =
             for item in collection do
                 x.Add item
 
-        member x.AsSpan = x.items.AsSpan(0, x.count)
+        member x.AsSpan () = x.items.AsSpan(0, x.count)
 
         /// <summary>
         /// Get/Set <see cref="PooledList{T}"/> capacity to hold elements.
@@ -106,6 +103,38 @@ module PooledList =
         member x.Capacity
             with get () = x.items.Length
             and set value = if value <> x.items.Length then x.Resize value (value < x.count)
+
+        member private x.CheckIndex (index, insertion) =
+            if insertion then
+                if uint index > uint x.count then
+                    ThrowHelpers.ThrowArgumentOutOfRangeException(
+                        ExceptionArgument.Index,
+                        ArgumentOutOfRange_ListInsert
+                    )
+            else if uint index >= uint x.count then
+                ThrowHelpers.ThrowArgumentOutOfRange_IndexException()
+
+        member x.Clear () = x.count <- 0
+
+        member x.Contains item =
+            let mutable i = 0
+            let items = x.items
+            let mutable found = false
+
+            if typeof<'T>.IsValueType then
+                while not found && i < x.count do
+                    found <- EqualityComparer<'T>.Default.Equals (items.[i], item)
+                    i <- i + 1
+            else
+                let comparer = EqualityComparer<'T>.Default
+
+                while not found && i < x.count do
+                    found <- comparer.Equals(items.[i], item)
+                    i <- i + 1
+
+            found
+
+        member x.CopyTo (arr : 'T [], index : int) = x.items.CopyTo(arr, index)
 
         /// <summary>
         /// Count of elements in <see cref="PooledList{T}"/>.
@@ -119,6 +148,13 @@ module PooledList =
             let c = x.count
             x.count <- x.items.Length
             x.items.AsSpan(c)
+
+        member x.GetEnumerator () =
+            (seq {
+                for i = 0 to x.count - 1 do
+                    yield x.items.[i]
+             })
+                .GetEnumerator()
 
         member x.IndexBasedCopy (indexedCounts : _ [], count) =
             let newItems = x.pool.Rent count
@@ -141,8 +177,32 @@ module PooledList =
             x.IndexBasedCopy(indexedCounts, totalCount)
 
         member x.Item
-            with get index = x.items.[index]
-            and set index value = x.items.[index] <- value
+            with get index =
+                x.CheckIndex(index, false)
+                x.items.[index]
+            and set index value =
+                x.CheckIndex(index, false)
+                x.items.[index] <- value
+
+        member x.Remove item =
+            let index = Array.IndexOf(x.items, item, 0, x.count)
+
+            if index < 0 then
+                false
+            else
+                x.RemoveAt(index)
+                true
+
+        member x.RemoveAt index =
+            let mutable count = x.count
+
+            if index < count then
+                count <- count - 1
+                Array.Copy(x.items, index + 1, x.items, index, count - index)
+                x.count <- count
+
+            if RuntimeHelpers.IsReferenceOrContainsReferences<'T>() then
+                x.items.[count] <- Unchecked.defaultof<_>
 
         member x.RemoveRange (start, count) =
             let totalCount = x.count
@@ -168,20 +228,20 @@ module PooledList =
             member x.Dispose () = x.Dispose()
 
         interface IList<'T> with
-            member x.Add (item) = raise (System.NotImplementedException())
-            member x.Clear () = raise (System.NotImplementedException())
-            member x.Contains (item) = raise (System.NotImplementedException())
-            member x.CopyTo (array, arrayIndex) = raise (System.NotImplementedException())
-            member x.Count = raise (System.NotImplementedException())
-            member x.GetEnumerator () : Collections.IEnumerator = raise (System.NotImplementedException())
-            member x.GetEnumerator () : 'T IEnumerator = raise (System.NotImplementedException())
+            member x.Add item = x.Add item
+            member x.Clear () = x.Clear()
+            member x.Contains item = x.Contains item
+            member x.CopyTo (array, arrayIndex) = x.CopyTo(array, arrayIndex)
+            member x.Count = x.count
+            member x.GetEnumerator () : Collections.IEnumerator = x.GetEnumerator()
+            member x.GetEnumerator () : 'T IEnumerator = x.GetEnumerator()
             member x.IndexOf (item) = raise (System.NotImplementedException())
             member x.Insert (index, item) = raise (System.NotImplementedException())
             member x.IsReadOnly = raise (System.NotImplementedException())
 
             member x.Item
-                with get (index) = raise (System.NotImplementedException())
-                and set (index) v = raise (System.NotImplementedException())
+                with get index = x.[index]
+                and set index value = x.[index] <- value
 
-            member x.Remove (item) = raise (System.NotImplementedException())
-            member x.RemoveAt (index) = raise (System.NotImplementedException())
+            member x.Remove item = x.Remove item
+            member x.RemoveAt index = x.RemoveAt index

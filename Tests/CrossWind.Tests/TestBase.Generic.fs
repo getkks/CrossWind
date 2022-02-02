@@ -26,7 +26,7 @@ type IntArrayComparer () =
             hash
 
 [<AbstractClass>]
-type TestBase<'T> () =
+type TestBase<'T when 'T : equality> () =
     inherit TestBase ()
     /// <summary>
     /// To be implemented in the concrete collections test classes. Creates an instance of T that

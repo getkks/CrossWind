@@ -34,10 +34,7 @@ type Bucket<'T> (bufferLength : int, numberOfBuffers : int) =
         // While we were holding the lock, we grabbed whatever was at the next available index, if
         // there was one.  If we tried and if we got back null, that means we hadn't yet allocated
         // for that slot, in which case we should do so now.
-        if buffer |> isNull then
-            zeroCreateUncheckedArray bufferLength
-        else
-            buffer
+        if buffer |> isNull then zeroCreateUncheckedArray bufferLength else buffer
     /// <summary>
     /// Attempts to return the buffer to the bucket.  If successful, the buffer will be stored
     /// in the bucket and true will be returned; otherwise, the buffer won't be stored, and false
@@ -71,18 +68,19 @@ type PrimeSizedArrayPool<'T> (maxArrayLength : int, maxArraysPerBucket : int) =
     let MaxBucketsToTry = 2
 
     let maxBuckets =
-        match SizeToIndex(maxArrayLength) with
-        | x when x < 0 ->
-            nameof (maxArrayLength)
-            |> ArgumentOutOfRangeException
-            |> raise
-        // Our bucketing algorithm has a min length of 2^4 and a max length of 2^30.
-        // Constrain the actual max used to those values.
-        | x when x > MaximumArrayLength -> MaximumArrayLength
-        | x when x < MinimumArrayLength -> MinimumArrayLength
-        | _ -> maxArrayLength
+        (match maxArrayLength with
+         | x when x < 0 ->
+             nameof (maxArrayLength)
+             |> ArgumentOutOfRangeException
+             |> raise
+         // Our bucketing algorithm has a min length of 2^4 and a max length of 2^30.
+         // Constrain the actual max used to those values.
+         | x when x > MaximumArrayLength -> MaximumArrayLength
+         | x when x < MinimumArrayLength -> MinimumArrayLength
+         | _ -> maxArrayLength)
+        |> SizeToIndex
 
-    let buckets = zeroCreateUncheckedArray (maxBuckets + 1)
+    let buckets = Array.zeroCreate (maxBuckets + 1)
 
     do
         for i = 0 to buckets.Length - 1 do

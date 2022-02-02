@@ -11,11 +11,23 @@
 		<OldToolsVersion>2.0</OldToolsVersion>
 		<Platforms>AnyCPU;x64;x86</Platforms>
 		<NukeTelemetryVersion>1</NukeTelemetryVersion>
+		<StartupObject>Build</StartupObject>
+		<AnalysisLevel>latest-all</AnalysisLevel>
+		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+		<ErrorReport>none</ErrorReport>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Configuration.cs" />
+	  <Compile Remove="CoverageReport.cs" />
+	  <Compile Remove="ReportIssues.cs" />
+	  <Compile Remove="Test.cs" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Nuke.Common" Version="*" />
 		<PackageDownload Include="GitVersion.Tool" Version="[5.8.1]" />
+		<PackageReference Include="Nuke.Components" Version="6.0.1" />
 		<PackageReference Include="OpenCover" Version="*" />
 		<PackageReference Include="Nuke.WebDocu" Version="*" />
 		<PackageReference Include="Nuke.GitHub" Version="*" />
