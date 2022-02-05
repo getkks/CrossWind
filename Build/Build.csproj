@@ -18,16 +18,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Nuke.Common" Version="*" />
+		<PackageReference Include="Nuke.Common" Version="6.0.1" />
 		<PackageDownload Include="GitVersion.Tool" Version="[5.8.1]" />
 		<PackageReference Include="Nuke.Components" Version="6.0.1" />
-		<PackageReference Include="OpenCover" Version="*" />
-		<PackageReference Include="Nuke.WebDocu" Version="*" />
-		<PackageReference Include="Nuke.GitHub" Version="*" />
-		<PackageReference Include="docfx.console" Version="*">
+		<PackageReference Include="OpenCover" Version="4.7.1221" />
+		<PackageReference Include="Nuke.WebDocu" Version="3.0.1" />
+		<PackageReference Include="Nuke.GitHub" Version="2.0.0" />
+		<PackageReference Include="docfx.console" Version="2.59.0">
 			<ExcludeAssets>build</ExcludeAssets>
 		</PackageReference>
-		<PackageReference Include="ReportGenerator" Version="*" />
+		<PackageReference Include="ReportGenerator" Version="5.0.3" />
 	</ItemGroup>
 
 </Project>

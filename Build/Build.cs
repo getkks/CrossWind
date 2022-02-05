@@ -4,9 +4,7 @@ using Nuke.Common.Execution;
 [ShutdownDotNetAfterServerBuild]
 [GitHubActions(
 	"BuildCI",
-	GitHubActionsImage.WindowsLatest,
-	GitHubActionsImage.UbuntuLatest,
-	GitHubActionsImage.MacOsLatest, AutoGenerate = true,
+	GitHubActionsImage.UbuntuLatest, AutoGenerate = true,
 	OnPushBranchesIgnore = new[] { MainBranch, ReleaseBranchPrefix + "/*" },
 	OnPullRequestBranches = new[] { DevelopBranch, FeatureBranchPrefix, HotfixBranchPrefix },
 	PublishArtifacts = false,
