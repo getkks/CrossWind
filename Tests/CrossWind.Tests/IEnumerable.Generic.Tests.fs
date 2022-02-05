@@ -210,7 +210,7 @@ type ``IEnumerable<'T> Tests``<'T when 'T: equality>() =
     member x.VerifyEnumerator(enumerator, expectedItems) =
         x.VerifyEnumerator(enumerator, expectedItems, 0, expectedItems.Length, true, true)
 
-    member x.VerifyModifiedEnumerator(enumerator: 'T IEnumerator, expectedCurrent, expectCurrentThrow, atEnd) =
+    member x.VerifyModifiedEnumerator(enumerator: 'T IEnumerator, expectedCurrent, expectCurrentThrow, _) =
         if expectCurrentThrow then
             (fun () -> enumerator.Current :> obj)
             |> Should.Throw<InvalidOperationException>
@@ -231,16 +231,19 @@ type ``IEnumerable<'T> Tests``<'T when 'T: equality>() =
             |> Should.Throw<InvalidOperationException>
             |> ignore
 
+
     [<Test; MemberData(nameof (TestBase.ValidCollectionSizes))>]
     member x.``IEnumerator<'T> MoveNext() after Dispose()`` count =
         let enumerable = x.GenericIEnumerableFactory(count)
         let enumerator = enumerable.GetEnumerator()
 
-        for i = 0 to count - 1 do
+        for _ = 0 to count - 1 do
             enumerator.MoveNext() |> ignore
 
-        enumerator.Dispose()
-        enumerator.MoveNext().ShouldBeFalse()
+        enumerator.ShouldSatisfyAllConditions(
+            (fun () -> enumerator.Dispose()),
+            (fun () -> enumerator.MoveNext() |> ignore)
+        )
 
     [<Test>]
     member x.``IEnumerator<'T> Current returns proper result``() =
@@ -316,7 +319,7 @@ type ``IEnumerable<'T> Tests``<'T when 'T: equality>() =
             | true, value -> secondValues.[item] <- value + 1
             | _ -> secondValues.[item] <- 1
 
-        firstValues.ShouldBe(secondValues) //firstValues.Count.ShouldBe(secondValues.Count);for key in firstValues.Keys do firstValues.[key].ShouldBe(secondValues.[key])
+        firstValues.ShouldBe(secondValues)
 
     [<Test; MemberData(nameof (TestBase.ValidCollectionSizes))>]
     member x.``IEnumerator<'T> Current returns same value on repeated calls`` count =
@@ -325,9 +328,12 @@ type ``IEnumerable<'T> Tests``<'T when 'T: equality>() =
 
         while enumerator.MoveNext() do
             let current = enumerator.Current
-            enumerator.Current.ShouldBe(current)
-            enumerator.Current.ShouldBe(current)
-            enumerator.Current.ShouldBe(current)
+
+            enumerator.ShouldSatisfyAllConditions(
+                (fun () -> enumerator.Current.ShouldBe(current)),
+                (fun () -> enumerator.Current.ShouldBe(current)),
+                (fun () -> enumerator.Current.ShouldBe(current))
+            )
 
     [<Test; MemberData(nameof (TestBase.ValidCollectionSizes))>]
     member x.``IEnumerator<'T> MoveNext() should stay false after enumeration`` count =
@@ -337,8 +343,10 @@ type ``IEnumerable<'T> Tests``<'T when 'T: equality>() =
         for _ = 0 to count - 1 do
             enumerator.MoveNext() |> ignore
 
-        enumerator.MoveNext().ShouldBeFalse()
-        enumerator.MoveNext().ShouldBeFalse()
+        enumerator.ShouldSatisfyAllConditions(
+            (fun () -> enumerator.MoveNext().ShouldBeFalse()),
+            (fun () -> enumerator.MoveNext().ShouldBeFalse())
+        )
 
     [<Test; MemberData(nameof (TestBase.ValidCollectionSizes))>]
     member x.``IEnumerator<'T> MoveNext() should cover all values during enumeration`` count =
@@ -594,8 +602,7 @@ type ``IEnumerable<'T> Tests``<'T when 'T: equality>() =
 
     [<Test; MemberData(nameof (TestBase.ValidCollectionSizes))>]
     member x.``IEnumerable GetEnumerator() succeeds`` count =
-        x
-            .GenericIEnumerableFactory(count)
+        (x.GenericIEnumerableFactory(count))
             .GetEnumerator()
             .Dispose()
 
