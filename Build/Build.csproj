@@ -18,13 +18,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Configuration.cs" />
-	  <Compile Remove="CoverageReport.cs" />
-	  <Compile Remove="ReportIssues.cs" />
-	  <Compile Remove="Test.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Nuke.Common" Version="*" />
 		<PackageDownload Include="GitVersion.Tool" Version="[5.8.1]" />
 		<PackageReference Include="Nuke.Components" Version="6.0.1" />
