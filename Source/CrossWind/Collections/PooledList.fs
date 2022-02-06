@@ -9,7 +9,6 @@ open CrossWind.Runtime
 open System.Collections.ObjectModel
 
 module PooledList =
-
     /// <summary>
     /// List implementation using <see cref="ArrayPool{T}"/> for storing elements. This implementation is based on <see cref="List{T}"/> and <see href="https://github.com/jtmueller/Collections.Pooled"/>.
     /// </summary>
@@ -53,7 +52,11 @@ module PooledList =
               items = items }
 
         [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+#if DEBUG
+        member internal x.Resize newLength shrinking =
+#else
         member inline internal x.Resize newLength shrinking =
+#endif
             let newItems = x.pool.Rent newLength
             if shrinking then x.count <- newLength
 
@@ -66,7 +69,11 @@ module PooledList =
             x.items <- newItems
 
         [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
+#if DEBUG
+        member internal x.EnsureCapacity minCapacity =
+#else
         member inline internal x.EnsureCapacity minCapacity =
+#endif
             if minCapacity > x.items.Length then
                 x.Resize minCapacity false
 
@@ -179,12 +186,7 @@ module PooledList =
             x.count <- x.items.Length
             x.items.AsSpan(c)
 
-        member x.GetEnumerator() =
-            (seq {
-                for i = 0 to x.count - 1 do
-                    yield x.items.[i]
-             })
-                .GetEnumerator()
+        member x.GetEnumerator() = new Enumerator<'T>(x)
 
         member x.IndexBasedCopy(indexedCounts: _ [], count) =
             let newItems = x.pool.Rent count
@@ -206,6 +208,9 @@ module PooledList =
 
             x.IndexBasedCopy(indexedCounts, totalCount)
 
+        member x.IndexOf item =
+            Array.IndexOf(x.items, item, 0, x.count)
+
         member x.Item
             with get index =
                 x.CheckIndex(index, false)
@@ -213,6 +218,18 @@ module PooledList =
             and set index value =
                 x.CheckIndex(index, false)
                 x.items.[index] <- value
+
+        member x.Insert(index, item) =
+            let count = x.count
+            x.EnsureCapacity(count + 1)
+            let arr = x.items
+            x.CheckIndex(index, true)
+
+            if count <> index then
+                Array.Copy(arr, index, arr, index + 1, count - index)
+
+            arr.[index] <- item
+            x.count <- count + 1
 
         member x.Remove item =
             let index = Array.IndexOf(x.items, item, 0, x.count)
@@ -226,13 +243,15 @@ module PooledList =
         member x.RemoveAt index =
             let mutable count = x.count
 
-            if index < count then
+            if uint (index) < uint (count) then
                 count <- count - 1
                 Array.Copy(x.items, index + 1, x.items, index, count - index)
                 x.count <- count
 
                 if RuntimeHelpers.IsReferenceOrContainsReferences<'T>() then
                     x.items.[count] <- Unchecked.defaultof<_>
+            else
+                ThrowHelpers.ThrowArgumentOutOfRange_IndexException()
 
         member x.RemoveRange(start, count) =
             let totalCount = x.count
@@ -267,13 +286,8 @@ module PooledList =
             member x.Count = x.count
             member x.GetEnumerator() : Collections.IEnumerator = x.GetEnumerator()
             member x.GetEnumerator() : 'T IEnumerator = x.GetEnumerator()
-
-            member x.IndexOf(item) =
-                raise (System.NotImplementedException())
-
-            member x.Insert(index, item) =
-                raise (System.NotImplementedException())
-
+            member x.IndexOf item = x.IndexOf item
+            member x.Insert(index, item) = x.Insert(index, item)
             member _.IsReadOnly = false
 
             member x.Item
@@ -282,3 +296,38 @@ module PooledList =
 
             member x.Remove item = x.Remove item
             member x.RemoveAt index = x.RemoveAt index
+
+    and [<Struct; NoComparison; NoEquality>] Enumerator<'T> =
+        new(list: 'T PooledList) =
+            { list = list
+              index = 0
+              current = Unchecked.defaultof<_> }
+
+        val mutable internal list: 'T PooledList
+        val mutable internal index: int
+        val mutable internal current: 'T
+        member x.Current = x.current
+
+        member x.MoveNext() =
+            if uint (x.index) < uint (x.list.Count) then
+                x.current <- x.list.[x.index]
+                x.index <- x.index + 1
+                true
+            else
+                x.current <- Unchecked.defaultof<_>
+                false
+
+        member x.Dispose() =
+            x.index <- Int32.MinValue
+            x.current <- Unchecked.defaultof<_>
+
+        member x.Reset() =
+            x.index <- 0
+            x.current <- Unchecked.defaultof<_>
+
+        interface IEnumerator<'T> with
+            member x.Current: obj = x.current :> _
+            member x.Current = x.current
+            member x.MoveNext() = x.MoveNext()
+            member x.Reset() = x.Reset()
+            member x.Dispose() = x.Dispose()

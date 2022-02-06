@@ -59,7 +59,7 @@ type ``IEnumerable<'T> Tests``<'T when 'T: equality>() =
     ///
     /// If Reset is not implemented, this property must return False. The default value is true.
     /// </summary>
-    member _.ResetImplemented = false
+    member _.ResetImplemented = true
     /// <summary>
     /// When calling Current of the enumerator before the first MoveNext, after the end of the collection,
     /// or after modification of the enumeration, the resulting behavior is undefined. Tests are included
