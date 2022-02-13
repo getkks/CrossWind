@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "docsTool": {
+      "commandName": "Project",
+      "commandLineArgs": "build --sitebaseurl https://getkks.github.io/CrossWind --projectglob \"Z:\\FSharp\\CrossWind\\build\\..\\Source/**/*.??proj\" --docsoutputdirectory \"Z:\\FSharp\\CrossWind\\build\\..\\docs\" --docssourcedirectory \"Z:\\FSharp\\CrossWind\\build\\..\\docsSrc\" --githubrepourl https://github.com/getkks/CrossWind --projectname CrossWind --releaseversion 0.0.1-alpha.1",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:14861;http://localhost:14862"
+    }
+  }
+}
