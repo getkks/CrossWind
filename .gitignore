@@ -421,7 +421,6 @@ coverage.*.xml
 Debug
 obj
 bin
-/build/
 *.exe
 !.paket/paket.bootstrapper.exe
 
