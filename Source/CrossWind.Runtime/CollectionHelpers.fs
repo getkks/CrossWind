@@ -3,7 +3,7 @@ namespace CrossWind.Runtime
 open System.Numerics
 
 module CollectionHelpers =
-    
+
     let MaximumArraySize = 2146435071
 
     let inline IndexToSize index = 16 <<< index

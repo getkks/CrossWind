@@ -10,11 +10,11 @@ open System.Runtime.InteropServices
 type ObjectExtensions =
     //https://github.com/stephan-tolksdorf/fparsec/blob/fdd990ad5abe32fd65d926005b4c7bd71dd2384f/FParsec/Internals.fs#L14
     [<Extension>]
-    static member inline ReferenceEquals (x : 'T, y : 'T) =  (# "ceq" x y : bool #)//obj.ReferenceEquals(x, y)
+    static member inline ReferenceEquals (x : 'T, y : 'T) = (# "ceq" x y : bool #) //obj.ReferenceEquals(x, y)
 
     //https://github.com/stephan-tolksdorf/fparsec/blob/fdd990ad5abe32fd65d926005b4c7bd71dd2384f/FParsec/Internals.fs#L16
     [<Extension>]
-    static member inline IsNull x = (# "ldnull ceq" x : bool #)//ObjectExtensions.ReferenceEquals(x, null)
+    static member inline IsNull x = (# "ldnull ceq" x : bool #) //ObjectExtensions.ReferenceEquals(x, null)
 
     //https://github.com/stephan-tolksdorf/fparsec/blob/fdd990ad5abe32fd65d926005b4c7bd71dd2384f/FParsec/Internals.fs#L18
     [<Extension>]
@@ -36,11 +36,12 @@ module TypeHelpers =
     type nativeptr<'T when 'T : unmanaged> with
 
         member inline x.Reference index =
-            &Unsafe.AsRef<'T>(
-                index
-                |> NativePtr.add x
-                |> NativePtr.toVoidPtr
-            )
+            &
+                Unsafe.AsRef<'T>(
+                    index
+                    |> NativePtr.add x
+                    |> NativePtr.toVoidPtr
+                )
 
         member inline x.LessThan right = (NativePtr.toNativeInt x) < (NativePtr.toNativeInt right)
 
@@ -85,6 +86,7 @@ module TypeHelpers =
             and set value = NativePtr.write x value
 
     let inline zeroCreateUncheckedArray<'T> (count : int) = (# "newarr !0" count : 'T array #)
+
     let inline GetType<'TypeForChoosingAssembly> typeName = typeof<'TypeForChoosingAssembly>.Assembly.GetType (typeName)
 
     let inline asSpan (ptr : 'T nativeptr) size =

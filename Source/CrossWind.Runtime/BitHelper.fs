@@ -15,11 +15,7 @@ type BitHelper (span : int Span) =
         if clear then span.Clear()
         BitHelper(span)
     /// <summary>How many ints must be allocated to represent n bits. Returns (n+31)/32, but avoids overflow.</summary>
-    static member ToIntArrayLength n =
-        if n > 0 then
-            (n - 1) / IntSize + 1
-        else
-            0
+    static member ToIntArrayLength n = if n > 0 then (n - 1) / IntSize + 1 else 0
 
     member _.IsMarked bitPosition =
         let bitArrayIndex = bitPosition / IntSize

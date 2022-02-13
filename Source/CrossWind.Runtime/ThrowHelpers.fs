@@ -483,12 +483,7 @@ type ThrowHelpers =
         )
 
     static member GetInvalidOperationException_EnumCurrent (index : int) =
-        InvalidOperationException(
-            if index < 0 then
-                "Enumeration has not started"
-            else
-                "Enumeration has ended"
-        )
+        InvalidOperationException(if index < 0 then "Enumeration has not started" else "Enumeration has ended")
 
     // Allow nulls for reference types and Nullable<U>, but not for value types.
     // Aggressively inline so the jit evaluates the if in place and either drops the call altogether
