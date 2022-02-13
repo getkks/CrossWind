@@ -1,7 +1,4 @@
-:; set -eo pipefail
-:; SCRIPT_DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
-:; ${SCRIPT_DIR}/build.sh "$@"
-:; exit $?
+echo Restoring dotnet tools...
+dotnet tool restore
 
-@ECHO OFF
-powershell -ExecutionPolicy ByPass -NoProfile -File "%~dp0build.ps1" %*
+dotnet run --project ./build/build.fsproj -- -t %*
