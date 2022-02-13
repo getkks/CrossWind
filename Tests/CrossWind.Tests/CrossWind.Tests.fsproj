@@ -1,46 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
-		<GenerateProgramFile>false</GenerateProgramFile>
-		<OtherFlags>$(OtherFlags)--warnon:3390</OtherFlags>
-		<LangVersion>preview</LangVersion>
-		<Platforms>AnyCPU;x64;x86</Platforms>
-	</PropertyGroup>
-	<ItemGroup>
-		<Compile Include="Utils.fs" />
-		<Compile Include="TestingTypes.fs" />
-		<Compile Include="TestSetup.fs" />
-		<Compile Include="CollectionEquality.fs" />
-		<Compile Include="TestBase.fs" />
-		<Compile Include="TestBase.Generic.fs" />
-		<Compile Include="IEnumerable.Generic.Tests.fs" />
-		<Compile Include="ICollection.Generic.Tests.fs" />
-		<Compile Include="IList.Generic.Tests.fs" />
-		<Compile Include="List.Generic.Tests.fs" />
-		<Compile Include="List.Generic.fs" />
-	</ItemGroup>
-	<ItemGroup>
-		<PackageReference Include="Fixie" Version="3.2.0" />
-		<PackageReference Include="Fixie.TestAdapter" Version="3.2.0" />
-		<PackageReference Include="FSharp.Core" Version="6.0.1" />
-		<PackageReference Include="coverlet.collector" Version="3.1.1" />
-		<PackageReference Include="coverlet.msbuild" Version="3.1.1">
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-		<PackageReference Include="Shouldly" Version="4.0.3" />
-		<PackageReference Include="Unquote" Version="6.1.0" />
-	</ItemGroup>
-	<ItemGroup>
-		<ProjectReference Include="..\..\Source\CrossWind\CrossWind.fsproj" />
-	</ItemGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DebugType>portable</DebugType>
-		<DefineConstants>DEBUG</DefineConstants>
-		<PlatformTarget>AnyCPU</PlatformTarget>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<PlatformTarget>AnyCPU</PlatformTarget>
-		<DebugType></DebugType>
-	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <OutputType>Exe</OutputType>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <GenerateProgramFile>false</GenerateProgramFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="TestSetup.fs" />
+    <Compile Include="IEnumerable.Generic.Tests.fs" />
+    <Compile Include="ICollection.Generic.Tests.fs" />
+    <Compile Include="IList.Generic.Tests.fs" />
+    <Compile Include="PooledList.Tests.fs" />
+    <Compile Include="Collections.Tests.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Source\CrossWind\CrossWind.fsproj" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
