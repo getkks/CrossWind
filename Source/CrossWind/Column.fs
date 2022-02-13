@@ -1,7 +1,6 @@
 namespace CrossWind
 
 open CrossWind.Collections
-open PooledList
 open CrossWind.Runtime
 open System
 open System.Collections
@@ -57,9 +56,11 @@ module Column =
             override x.FirstN (n) = n |> x.FirstN
 
             override x.IndexedCopy indexedCounts = raise (System.NotImplementedException())
+
             override x.IndexedSelection indices = raise (System.NotImplementedException())
 
             override x.NewEmptyColumn () = x.NewEmptyColumn()
+
             override x.NewIndexedCopy indexedCounts = raise (System.NotImplementedException())
 
             [<MethodImpl(MethodImplOptions.AggressiveInlining)>]

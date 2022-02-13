@@ -9,14 +9,13 @@ module Record =
         { Table : 'FieldNameComparer Table
           RowNumber : int }
 
-    let inline getField fieldName (row : _ Row) : 'T =
-        Column.getItem row.RowNumber row.Table.[fieldName]
+    let inline getField fieldName (row : _ Row) : 'T = Column.getItem row.RowNumber row.Table.[fieldName]
 
-    let inline setField fieldName value (row : _ Row) =
-        Column.setItem row.RowNumber value row.Table.[fieldName]
+    let inline setField fieldName value (row : _ Row) = Column.setItem row.RowNumber value row.Table.[fieldName]
 
     let inline nextRow (row : _ Row) (nextRow : _ outref) =
         nextRow <- { Table = row.Table ; RowNumber = row.RowNumber + 1 }
+
         true
 
     type IReadOnlyRecord =

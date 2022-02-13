@@ -203,6 +203,7 @@ module rec PooledHash =
                        false
                    else
                        if returnLastEntry then lastEntry <- entryIndex else entryIndex <- entry.Next
+
                        true
                else
                    failure hashCode bucket
@@ -237,6 +238,7 @@ module rec PooledHash =
         =
         let mutable ret = true
         let count = state.count
+
         if count = state.entries.Length then Resize(count + 1) state
 
         FindEntry
@@ -245,6 +247,7 @@ module rec PooledHash =
                 match behavior with
                 | OverwriteExisting ->
                     let entry = &state.entries.[entryIndex]
+
                     entry.Entry <- (Unchecked.defaultof<'TAccess>).SetValue(value, entry.Entry)
                 | ThrowOnExisting -> ThrowHelpers.ThrowAddingDuplicateWithKeyArgumentException(key)
                 | _ -> ret <- false
@@ -252,7 +255,9 @@ module rec PooledHash =
             (fun hashCode bucketIndex ->
                 let entry = &state.entries.[count]
                 let bucket = &state.hashBuckets.GetBucketReference(bucketIndex)
+
                 entry.Entry <- (Unchecked.defaultof<'TAccess>).SetKeyValue(key, value)
+
                 entry.HashCode <- hashCode
                 entry.Next <- bucket
                 state.count <- count + 1
@@ -360,7 +365,7 @@ module rec PooledHash =
                     yield
                         entry.Entry
                         |> (Unchecked.defaultof<'TAccess>).GetKey
-             })
+            })
 
         member x.Remove key = x |> Remove key
 

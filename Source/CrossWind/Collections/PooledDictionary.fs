@@ -88,6 +88,7 @@ type PooledDictionary<'TKey, 'TValue, 'KeyComparer when 'KeyComparer :> IEqualit
         &buckets.[bucketIndex]
 
     member inline internal _.GetBucket (hashCode) = &buckets.[FastMod hashCode buckets.LongLength fastModMultiplier]
+
     member inline internal _.GetBucketIndex (hashCode) = FastMod hashCode buckets.LongLength fastModMultiplier
 
     member inline internal x.copyEntries
@@ -266,8 +267,8 @@ type PooledDictionary<'TKey, 'TValue, 'KeyComparer when 'KeyComparer :> IEqualit
                     | _ -> entries.[lastEntry].Next <- entry.Next
 
                     entry.Next <- Int32.MinValue
-            ),
-            (fun _ _ -> ())
+                ),
+                (fun _ _ -> ())
             )
             |> uint < uint (entries.Length)
 
@@ -286,8 +287,8 @@ type PooledDictionary<'TKey, 'TValue, 'KeyComparer when 'KeyComparer :> IEqualit
                 | _ -> entries.[lastEntry].Next <- entry.Next
 
                 entry.Next <- Int32.MinValue
-        ),
-        (fun _ _ -> ())
+            ),
+            (fun _ _ -> ())
         )
         |> uint < uint (entries.Length)
 
@@ -344,18 +345,18 @@ type PooledDictionary<'TKey, 'TValue, 'KeyComparer when 'KeyComparer :> IEqualit
                 | PooledHash.OverwriteExisting -> entries.[entryIndex].Value <- value
                 | PooledHash.ThrowOnExisting -> ThrowHelpers.ThrowAddingDuplicateWithKeyArgumentException(key)
                 | _ -> ()
-        ),
-        (fun hashCode bucketIndex ->
-            if count = entries.Length then x.Resize(count + 1)
+            ),
+            (fun hashCode bucketIndex ->
+                if count = entries.Length then x.Resize(count + 1)
 
-            let entry = &entries.[count]
-            let bucket = &buckets.[bucketIndex]
-            entry.Key <- key
-            entry.Value <- value
-            entry.HashCode <- hashCode
-            entry.Next <- bucket - 1
-            count <- count + 1
-            bucket <- count
-    )
+                let entry = &entries.[count]
+                let bucket = &buckets.[bucketIndex]
+                entry.Key <- key
+                entry.Value <- value
+                entry.HashCode <- hashCode
+                entry.Next <- bucket - 1
+                count <- count + 1
+                bucket <- count
+            )
 
-)
+        )
