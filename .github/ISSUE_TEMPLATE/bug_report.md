@@ -2,37 +2,38 @@
 name: Bug report
 about: Create a report to help us improve
 title: ''
-labels: ''
+labels: bug
 assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+## Description
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+Please insert a description of your problem or question.
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+## Error messages, screenshots
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+Please add any error logs or screenshots if available.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+## Failing test, failing GitHub repo, or reproduction steps
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+Please add either a failing test, a GitHub repo of the problem or detailed reproduction steps.
+
+## Expected Behavior
+
+Please define what you would expect the behavior to be like.
+
+## Other information
+
+* Operating System:
+  * [ ] windows [insert version here]
+  * [ ] macOs [insert version]
+  * [ ] linux [insert flavor/version here]
+* Platform
+  * [ ] dotnet core
+  * [ ] dotnet full
+  * [ ] mono
+* Branch or release version:
 
 **Additional context**
 Add any other context about the problem here.
