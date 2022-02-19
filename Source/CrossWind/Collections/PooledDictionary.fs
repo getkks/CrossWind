@@ -7,8 +7,6 @@ open System.Collections.Generic
 open System
 open CrossWind.Runtime.CollectionHelpers
 open System.Runtime.CompilerServices
-open System.Collections
-open System.Collections.Generic
 
 [<CustomEquality ; NoComparison>]
 type Entry<'TKey, 'TValue> =
@@ -52,7 +50,7 @@ type Entry<'TKey, 'TValue> =
 /// <typeparam name="TKey"></typeparam>
 /// <typeparam name="TValue"></typeparam>
 [<DebuggerDisplay("Count = {Count}") ; DebuggerTypeProxy(typeof<DebugView.ICollectionDebugView<_>>)>]
-type PooledDictionary<'TKey, 'TValue, 'KeyComparer when 'KeyComparer :> IEqualityComparer<'TKey>>
+type PooledDictionary1<'TKey, 'TValue, 'KeyComparer when 'KeyComparer :> IEqualityComparer<'TKey>>
     (
         multiplier,
         primeIndex,
@@ -75,10 +73,10 @@ type PooledDictionary<'TKey, 'TValue, 'KeyComparer when 'KeyComparer :> IEqualit
 
     new (capacity, keyComparer) =
         let primeIndex = capacity |> SizeToIndex
-        PooledDictionary(PrimeMultiplier.[primeIndex], primeIndex, keyComparer)
+        PooledDictionary1(PrimeMultiplier.[primeIndex], primeIndex, keyComparer)
 
-    new (capacity) = PooledDictionary(capacity, Unchecked.defaultof<_>)
-    new (keyComparer) = PooledDictionary(0, keyComparer)
+    new (capacity) = PooledDictionary1(capacity, Unchecked.defaultof<_>)
+    new (keyComparer) = PooledDictionary1(0, keyComparer)
 
     member _.Comparer = comparer
     member _.Count = count - freeCount
@@ -305,7 +303,7 @@ type PooledDictionary<'TKey, 'TValue, 'KeyComparer when 'KeyComparer :> IEqualit
 
     member x.AddRange (source : _ IEnumerable) =
         match source with
-        | :? PooledDictionary<'TKey, 'TValue, 'KeyComparer> as collection ->
+        | :? PooledDictionary1<'TKey, 'TValue, 'KeyComparer> as collection ->
             let collectionCount = collection.Count
             let dictionaryCount = x.Count
             x.Resize(collectionCount + dictionaryCount)

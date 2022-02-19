@@ -8,6 +8,7 @@ open System.Collections.Generic
 open System.Diagnostics
 
 module rec PooledHash =
+    open System.Collections
 
     [<NoComparison ; NoEquality>]
     type InsertionBehavior =
@@ -230,12 +231,7 @@ module rec PooledHash =
     let FindEntryIndex keyToSearch (state : PooledHash<'T, 'TKey, 'TValue, 'TAccess, 'KeyComparer>) =
         FindEntry keyToSearch (fun _ _ _ -> ()) (fun _ _ -> ()) state
 
-    let inline TryInsert
-        key
-        (value : 'TValue)
-        behavior
-        (state : PooledHash<'T, 'TKey, 'TValue, 'TAccess, 'KeyComparer>)
-        =
+    let TryInsert key (value : 'TValue) behavior (state : PooledHash<'T, 'TKey, 'TValue, 'TAccess, 'KeyComparer>) =
         let mutable ret = true
         let count = state.count
 
@@ -268,7 +264,7 @@ module rec PooledHash =
 
         ret
 
-    let inline Remove key (state : PooledHash<'T, 'TKey, 'TValue, 'TAccess, 'KeyComparer>) =
+    let Remove key (state : PooledHash<'T, 'TKey, 'TValue, 'TAccess, 'KeyComparer>) =
         let entries = state.entries
 
         FindEntryAndLastIndex
@@ -305,11 +301,14 @@ module rec PooledHash =
         val mutable comparer : 'KeyComparer
 
         new (capacity, keyComparer) =
-            let pool = PrimeSizedArrayPool()
+            if capacity < 0 then
+                ThrowHelpers.ThrowIndexArgumentOutOfRange_NeedNonNegNumException()
 
             let bucketIndex =
                 capacity
                 |> CollectionHelpers.SizeToIndex
+
+            let pool = PrimeSizedArrayPool()
 
             { count = 0
               freeCount = 0
@@ -319,14 +318,44 @@ module rec PooledHash =
               entries = bucketIndex |> pool.RentFromBucket
               comparer = keyComparer |> ApplyComparer }
 
-        new (capacity) =
+        new (capacity : int) =
             new PooledHash<'T, 'TKey, 'TValue, 'TAccess, 'KeyComparer>(
                 capacity,
                 if
                     typeof<'KeyComparer>.Equals (typeof<EqualityComparer<'TKey>>)
                     && RuntimeHelpers.IsReferenceOrContainsReferences<'TKey>()
                 then
-                    EqualityComparer<'TKey>.Default |> unbox
+                    EqualityComparer<'TKey>.Default.As ()
+                else
+                    Unchecked.defaultof<_>
+            )
+
+        new (items : 'T [], keyComparer) =
+            let pool = PrimeSizedArrayPool()
+
+            let bucketIndex =
+                items.Length
+                |> CollectionHelpers.SizeToIndex
+
+            let entries = bucketIndex |> pool.RentFromBucket
+            Array.Copy(items, entries, items.Length)
+
+            { count = items.Length
+              freeCount = 0
+              fastModMultiplier = PrimeMultiplier.[bucketIndex]
+              entryPool = pool
+              hashBuckets = new HashBucket(PrimesDoublingInSize.[bucketIndex])
+              entries = entries
+              comparer = keyComparer |> ApplyComparer }
+
+        new (items : _ []) =
+            new PooledHash<'T, 'TKey, 'TValue, 'TAccess, 'KeyComparer>(
+                items,
+                if
+                    typeof<'KeyComparer>.Equals (typeof<EqualityComparer<'TKey>>)
+                    && RuntimeHelpers.IsReferenceOrContainsReferences<'TKey>()
+                then
+                    EqualityComparer<'TKey>.Default.As ()
                 else
                     Unchecked.defaultof<_>
             )
@@ -339,19 +368,9 @@ module rec PooledHash =
         member x.ContainsKey key = (x |> FindEntryIndex key) <> -1
         member x.Count = x.count
 
-        member x.FindEntry key = x |> FindEntryIndex key
-
         member x.Item
             with get key =
-                x.entries.[x
-                           |> FindEntry
-                               key
-                               (fun _ _ _ -> ())
-                               (fun _ _ ->
-                                   key
-                                   |> ThrowHelpers.GetKeyNotFoundException
-                                   |> raise
-                               )]
+                x.entries.[FindEntry key (fun _ _ _ -> ()) (fun _ _ -> ThrowHelpers.ThrowKeyNotFoundException key) x]
                     .Entry
                 |> (Unchecked.defaultof<'TAccess>).GetValue
             and set key value =
@@ -378,10 +397,89 @@ module rec PooledHash =
             [<MethodImpl(MethodImplOptions.AggressiveInlining)>]
             override x.Dispose () = x.Dispose()
 
+        interface IDictionary<'TKey, 'TValue> with
+            member x.Add (key, value) = NotImplementedException() |> raise
+            member x.ContainsKey (key) = x.ContainsKey key
+
+            member x.Item
+                with get key = NotImplementedException() |> raise
+                and set key v = NotImplementedException() |> raise
+
+            member x.Keys = NotImplementedException() |> raise
+            member x.Remove key = x.Remove key
+            member x.TryGetValue (key, value) = NotImplementedException() |> raise
+            member x.Values = NotImplementedException() |> raise
+
+        interface IEnumerable with
+            member x.GetEnumerator () : IEnumerator = NotImplementedException() |> raise
+
+        interface ICollection<KeyValuePair<'TKey, 'TValue>> with
+            member x.Add item = NotImplementedException() |> raise
+            member x.Clear () = NotImplementedException() |> raise
+            member x.Contains item = NotImplementedException() |> raise
+            member x.CopyTo (array, arrayIndex) = NotImplementedException() |> raise
+            member x.Count = NotImplementedException() |> raise
+            member x.IsReadOnly = NotImplementedException() |> raise
+            member x.GetEnumerator () = NotImplementedException() |> raise
+            member x.Remove item = NotImplementedException() |> raise
+    /// <summary>
+    /// A struct based Enumerator for <see cref="PooledDictionary{TKey, TValue}"/>.
+    /// </summary>
+    and [<Struct ; NoComparison ; NoEquality>] Enumerator<'T, 'TKey, 'TValue, 'TAccess, 'KeyComparer when 'TAccess :> IKeyValuePair<'T, 'TKey, 'TValue> and 'TAccess : struct and 'KeyComparer :> IEqualityComparer<'TKey>> =
+        new (dictionary : PooledHash<'T, 'TKey, 'TValue, 'TAccess, 'KeyComparer>) =
+            { dictionary = dictionary ; index = 0 ; current = Unchecked.defaultof<_> }
+
+        val mutable internal dictionary : PooledHash<'T, 'TKey, 'TValue, 'TAccess, 'KeyComparer>
+        val mutable internal index : int
+        val mutable internal current : 'T
+        /// <summary>
+        /// Gets the element at the current position of the enumerator.
+        /// </summary>
+        /// <returns>The element at the current position of the enumerator.</returns>
+        member x.Current = x.current
+
+        /// <summary>
+        /// Advances the enumerator to the next element of the list.
+        /// </summary>
+        /// <returns>
+        /// <c>true</c> if the enumerator was successfully advanced to the next element;
+        /// <c>false</c> if the enumerator has passed the end of the list.
+        /// </returns>
+        member x.MoveNext () : bool =
+            if uint (x.index) < uint (x.dictionary.Count) then
+                //x.current <- x.dictionary.[x.index]
+                x.index <- x.index + 1
+                true
+            else
+                x.current <- Unchecked.defaultof<_>
+                false
+        /// <summary>
+        /// Disposes the enumerator.
+        /// </summary>
+        member x.Dispose () =
+            x.index <- Int32.MinValue
+            x.current <- Unchecked.defaultof<_>
+        /// <summary>
+        /// Resets the enumerator to the beginning of the list.
+        /// </summary>
+        /// <remarks>
+        /// This method is an O(1) operation.
+        /// </remarks>
+        member x.Reset () =
+            x.index <- 0
+            x.current <- Unchecked.defaultof<_>
+
+        interface IEnumerator<'T> with
+            member x.Current : obj = x.current :> _
+            member x.Current : 'T = x.current
+            member x.MoveNext () = x.MoveNext()
+            member x.Reset () = x.Reset()
+            member x.Dispose () = x.Dispose()
+
 open PooledHash
 
 type PooledHashSet<'T, 'Comparer when 'Comparer :> IEqualityComparer<'T>> =
     PooledHash<'T, 'T, 'T, HashSetKeyValue<'T>, 'Comparer>
 
-type PooledDictionary1<'TKey, 'TValue, 'KeyComparer when 'KeyComparer :> IEqualityComparer<'TKey>> =
+type PooledDictionary<'TKey, 'TValue, 'KeyComparer when 'KeyComparer :> IEqualityComparer<'TKey>> =
     PooledHash<KeyValuePair<'TKey, 'TValue>, 'TKey, 'TValue, DictionaryKeyValue<'TKey, 'TValue>, 'KeyComparer>
