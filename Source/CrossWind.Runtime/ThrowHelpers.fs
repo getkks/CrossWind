@@ -5,7 +5,9 @@ open System.Collections.Generic
 open System.Diagnostics.CodeAnalysis
 open System.Runtime.CompilerServices
 open System.Runtime.Serialization
-
+/// <summary>
+/// Argument names for throw helpers.
+/// </summary>
 [<NoEquality ; NoComparison ; RequireQualifiedAccess>]
 type ExceptionArgument =
     | Obj
@@ -129,7 +131,9 @@ type ExceptionArgument =
         | EndIndex -> "endIndex"
         | ElementType -> "elementType"
         | ArrayIndex -> "arrayIndex"
-
+/// <summary>
+/// Exception message for throw helpers.
+/// </summary>
 [<NoEquality ; NoComparison>]
 type ExceptionResource =
     | ArgumentOutOfRange_Index
