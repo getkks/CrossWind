@@ -245,19 +245,36 @@ type PooledList<'T> =
     /// This method is an O(1) operation.
     ///</remarks>
     member x.GetEnumerator () = new Enumerator<'T>(x)
-
+    /// <summary>
+    /// Create copies of elements of based on the index and their counts.
+    /// </summary>
+    /// <param name="indexedCounts">The index and their counts.</param>
+    /// <param name="count">The total count of elements that will be present after the copy is compeleted.</param>
+    /// <remarks>
+    /// This method is an O(n) operation.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="indexedCounts"/> is <c>null</c>.</exception>
     member x.IndexBasedCopy (indexedCounts : _ [], count) =
+        ArgumentNullException.ThrowIfNull indexedCounts
         let newItems = x.pool.Rent count
+        let items = x.items
 
         for struct (index, count) in indexedCounts do
-            let item = x.items.[index]
+            let item = items.[index]
 
             for i = index to index + count - 1 do
                 newItems.[i] <- item
 
-        x.pool.Return x.items
+        x.pool.Return items
         x.items <- newItems
-
+    /// <summary>
+    /// Create copies of elements of based on the index and counts.
+    /// </summary>
+    /// <param name="indexedCounts">The index and their counts.</param>
+    /// <remarks>
+    /// This method is an O(2n) operation. Calculates the end count before starting the copy.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="indexedCounts"/> is <c>null</c>.</exception>
     member x.IndexBasedCopy (indexedCounts : _ []) =
         let mutable totalCount = 0
 
@@ -265,7 +282,32 @@ type PooledList<'T> =
             totalCount <- totalCount + count
 
         x.IndexBasedCopy(indexedCounts, totalCount)
+    /// <summary>
+    /// Select and filter elements of <see cref="PooledList{T}"/>.
+    /// </summary>
+    /// <param name="selcectionIndex">Indices of elements to select.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="selcectionIndex"/> is <c>null</c>.</exception>
+    /// <remarks>
+    /// This method is an O(n) operation.
+    /// </remarks>
+    member x.IndexBasedSelection (selcectionIndex : _ []) =
+        ArgumentNullException.ThrowIfNull selcectionIndex
+        let newItems = x.pool.Rent selcectionIndex.Length
+        let items = x.items
 
+        for i = 0 to selcectionIndex.Length - 1 do
+            newItems.[i] <- items.[selcectionIndex.[i]]
+
+        x.pool.Return items
+        x.items <- newItems
+    /// <summary>
+    /// Index of a given element in <see cref="PooledList{T}"/>.
+    /// </summary>
+    /// <param name="item">The element to find.</param>
+    /// <returns>The index of the element, or -1 if not found.</returns>
+    /// <remarks>
+    /// This method is an O(n) operation.
+    /// </remarks>
     member x.IndexOf item = Array.IndexOf(x.items, item, 0, x.count)
     /// <summary>
     /// Get/Set an element at the given <paramref name="index"/>.
@@ -295,7 +337,14 @@ type PooledList<'T> =
 
         arr.[index] <- item
         x.count <- count + 1
-
+    /// <summary>
+    /// Remove an element from <see cref="PooledList{T}"/>.
+    /// </summary>
+    /// <param name="item">The element to remove.</param>
+    /// <returns><c>true</c> if the element was removed.</returns>
+    /// <remarks>
+    /// This method is an O(n) operation.
+    /// </remarks>
     member x.Remove item =
         let index = Array.IndexOf(x.items, item, 0, x.count)
 
@@ -304,7 +353,14 @@ type PooledList<'T> =
         else
             index |> x.RemoveAt
             true
-
+    /// <summary>
+    /// Remove an element at the given <paramref name="index"/>.
+    /// </summary>
+    /// <param name="index">The index of the element to remove.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="index"/> is less than zero or greater than <see cref="PooledList{T}.Count"/>.</exception>
+    /// <remarks>
+    /// This method is an O(n) operation.
+    /// </remarks>
     member x.RemoveAt index =
         let mutable count = x.count
 
@@ -317,16 +373,73 @@ type PooledList<'T> =
                 x.items.[count] <- Unchecked.defaultof<_>
         else
             ThrowHelpers.ThrowArgumentOutOfRange_IndexException()
+    /// <summary>
+    /// Remove a range of elements from <see cref="PooledList{T}"/>.
+    /// </summary>
+    /// <param name="index">The index of the first element to remove.</param>
+    /// <param name="count">The number of elements to remove.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="index"/> is less than zero.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="count"/> is less than zero.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="index"/> and <paramref name="count"/> do not denote a valid range of elements in <see cref="PooledList{T}"/>.</exception>
+    /// <remarks>
+    /// This method is an O(n) operation.
+    /// </remarks>
+    member x.RemoveRange (index, count) =
+        if index < 0 then
+            ThrowHelpers.ThrowIndexArgumentOutOfRange_NeedNonNegNumException()
 
-    member x.RemoveRange (start, count) =
+        if count < 0 then
+            ThrowHelpers.ThrowArgumentOutOfRangeException(ExceptionArgument.Count, ArgumentOutOfRange_NeedNonNegNum)
+
+        if x.count - index < count then
+            ThrowHelpers.ThrowArgumentException Argument_InvalidOffLen
+
         let totalCount = x.count
-        let rangeEnd = count + start
+        let rangeEnd = count + index
         let tailCount = totalCount - rangeEnd
         let items = x.items.AsSpan()
 
         if tailCount > 0 then
-            items.Slice(rangeEnd).CopyTo(items.Slice(start, tailCount))
+            items.Slice(rangeEnd).CopyTo(items.Slice(index, tailCount))
+            x.count <- totalCount - count
+    /// <summary>
+    /// Reverse the order of elements in <see cref="PooledList{T}"/>.
+    /// </summary>
+    /// <param name="index">The index of the first element to reverse.</param>
+    /// <param name="count">The number of elements to reverse.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="index"/> is less than zero.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="count"/> is less than zero.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="index"/> and <paramref name="count"/> do not denote a valid range of elements in <see cref="PooledList{T}"/>.</exception>
+    /// <remarks>
+    /// This method is an O(n) operation.
+    /// </remarks>
+    member x.Reverse (index, count) =
+        if index < 0 then
+            ThrowHelpers.ThrowIndexArgumentOutOfRange_NeedNonNegNumException()
 
+        if count < 0 then
+            ThrowHelpers.ThrowArgumentOutOfRangeException(ExceptionArgument.Count, ArgumentOutOfRange_NeedNonNegNum)
+
+        if x.count - index < count then
+            ThrowHelpers.ThrowArgumentException Argument_InvalidOffLen
+
+        if count > 1 then Array.Reverse(x.items, index, count)
+    /// <summary>
+    /// Reverse the order of elements in <see cref="PooledList{T}"/>.
+    /// </summary>
+    /// <remarks>
+    /// This method is an O(n) operation.
+    /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="index"/> is less than zero.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="count"/> is less than zero.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="index"/> and <paramref name="count"/> do not denote a valid range of elements in <see cref="PooledList{T}"/>.</exception>
+    member x.Reverse () = x.Reverse(0, x.count)
+    /// <summary>
+    /// Trim the capacity of <see cref="PooledList{T}"/> to the actual number of elements.
+    /// </summary>
+    /// <remarks>
+    /// This method is an O(n) operation.
+    /// </remarks>
     member x.TrimExcess () =
         if x.count < x.items.Length
            && x.count
